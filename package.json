@@ -5,8 +5,8 @@
   "dependencies": {
     "react": "^16.4.0",
     "react-dom": "^16.4.0",
-    "reactows-95": "git+https://github.com/Middlerun/reactows-95.git#built",
-    "react-scripts": "1.1.4"
+    "react-scripts": "1.1.4",
+    "reactows-95": "git+https://github.com/Middlerun/reactows-95.git#built"
   },
   "devDependencies": {},
   "scripts": {
