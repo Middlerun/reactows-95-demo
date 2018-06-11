@@ -5626,7 +5626,7 @@ react@^16.4.0:
 
 "reactows-95@git+https://github.com/Middlerun/reactows-95.git#built":
   version "0.1.0"
-  resolved "git+https://github.com/Middlerun/reactows-95.git#be4fe150a2fb155423358b6715d118d712ab24e2"
+  resolved "git+https://github.com/Middlerun/reactows-95.git#d8f7896d11e25cf49ab1304e7a4f7351f2421dec"
   dependencies:
     react "^16.4.0"
     react-dom "^16.4.0"
