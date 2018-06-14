@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component } from 'react'
 
 import {
   Desktop,
@@ -20,6 +20,12 @@ function action(message) {
   }
 }
 
+function sequentialArray(count) {
+  const array = new Array(count)
+  for (let i=0; i<count; i++) { array[i] = i }
+  return array
+}
+
 class App extends Component {
   render() {
     return (
@@ -32,7 +38,7 @@ class App extends Component {
           </IconArea>
           <WindowLayer>
             <Folder title="A window" hasFocus>
-              {(new Array(30)).fill(1).map((val, i) => <IconRegular label="And YOU get an icon!" icon={ICON_RICH_TEXT} key={i}/>)}
+              {sequentialArray(30).map(i => <IconRegular label="And YOU get an icon!" icon={ICON_RICH_TEXT} key={i}/>)}
             </Folder>
             <WordPad hasFocus>
               <h1>Content!</h1>
@@ -47,8 +53,8 @@ class App extends Component {
           <TaskbarItem title="Long title on another taskbar item" icon={ICON_FOLDER}/>
         </Taskbar>
       </Shell>
-    );
+    )
   }
 }
 
-export default App;
+export default App
