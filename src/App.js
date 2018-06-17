@@ -27,6 +27,28 @@ function sequentialArray(count) {
   return array
 }
 
+function startMenuItemSelected(item) {
+  action(item.label + ' selected')()
+}
+
+const startMenuItems = [
+  { label: 'Programs', subMenuItems: [
+      { label: 'Program 1', onSelect: startMenuItemSelected },
+      { label: 'Program 2', onSelect: startMenuItemSelected },
+      { label: 'Program 3', subMenuItems: [
+          { label: 'herp', onSelect: startMenuItemSelected },
+          { label: 'derp', onSelect: startMenuItemSelected },
+        ] },
+    ] },
+  { label: 'Documents', onSelect: startMenuItemSelected },
+  { label: 'Settings', onSelect: startMenuItemSelected },
+  { label: 'Find', onSelect: startMenuItemSelected },
+  { label: 'Help', onSelect: startMenuItemSelected },
+  { label: 'Run...', onSelect: startMenuItemSelected },
+  'divider',
+  { label: 'Shut down...', onSelect: startMenuItemSelected },
+]
+
 class App extends Component {
   render() {
     return (
@@ -48,7 +70,7 @@ class App extends Component {
             </WordPad>
           </WindowLayer>
         </Desktop>
-        <Taskbar onStartButtonClick={action('start button clicked')}>
+        <Taskbar startMenuItems={startMenuItems}>
           <TaskbarItem title="A taskbar item" icon={folderIcon}/>
           <TaskbarItem title="Another taskbar item" icon={folderIcon}/>
           <TaskbarItem title="Long title on another taskbar item" icon={folderIcon}/>
