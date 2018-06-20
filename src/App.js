@@ -66,14 +66,14 @@ class App extends Component {
             <WordPad icon={defaultIcon} hasFocus>
               <h1>Content!</h1>
               <p>Here's some content. Here's some content. Here's some content. Here's some content. Here's some content. Here's some content.</p>
-              <img src="http://lorempixel.com/400/300/cats/" alt="Obligatory cat photo"/>
+              <img src="http://loremflickr.com/400/300/cats/" alt="Obligatory cat photo"/>
             </WordPad>
           </WindowLayer>
         </Desktop>
         <Taskbar startMenuItems={startMenuItems}>
-          <TaskbarItem title="A taskbar item" icon={folderIcon}/>
-          <TaskbarItem title="Another taskbar item" icon={folderIcon}/>
-          <TaskbarItem title="Long title on another taskbar item" icon={folderIcon}/>
+          <TaskbarItem label="A taskbar item" icon={folderIcon}/>
+          <TaskbarItem label="Another taskbar item" icon={folderIcon}/>
+          <TaskbarItem label="Long title on another taskbar item" icon={folderIcon}/>
         </Taskbar>
       </Shell>
     )
