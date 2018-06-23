@@ -1,5 +1,7 @@
 import React, { Component } from 'react'
+import {connect} from 'react-redux'
 
+import { openWindow, focusWindow, closeWindow } from './actions/window'
 import {
   Desktop,
   Folder,
@@ -50,34 +52,95 @@ const startMenuItems = [
 ]
 
 class App extends Component {
+  renderWindows() {
+    const { windowState, focusWindow, closeWindow } = this.props
+
+    return windowState.list.map(win => {
+      const closeFunc = () => closeWindow(win.id)
+      const focusFunc = () => focusWindow(win.id)
+
+      if (win.appName === 'wordpad') {
+        return <WordPad
+          icon={defaultIcon}
+          hasFocus={win.focused}
+          key={win.id}
+          onMouseDown={focusFunc}
+          onRequestClose={closeFunc}
+          zIndex={win.zIndex}
+        >
+          <h1>Content!</h1>
+          <p>Here's some content. Here's some content. Here's some content. Here's some content. Here's some content. Here's some content.</p>
+          <img src="http://loremflickr.com/400/300/cats/" alt="Obligatory cat photo"/>
+        </WordPad>
+      }
+
+      if (win.appName === 'folder') {
+        return <Folder
+          icon={folderIcon}
+          title="A window"
+          hasFocus={win.focused}
+          key={win.id}
+          onMouseDown={focusFunc}
+          onRequestClose={closeFunc}
+          zIndex={win.zIndex}
+        >
+          {sequentialArray(30).map(i => <IconRegular label="And YOU get an icon!" key={i}/>)}
+        </Folder>
+      }
+
+      return null
+    })
+  }
+
+  renderTaskbarItems() {
+    const { windowState, focusWindow } = this.props
+
+    return windowState.list.map(win => {
+      const focusFunc = () => focusWindow(win.id)
+
+      if (win.appName === 'wordpad') {
+        return <TaskbarItem label="A taskbar item" icon={defaultIcon} key={win.id} onClick={focusFunc}/>
+      }
+
+      if (win.appName === 'folder') {
+        return <TaskbarItem label="A taskbar item" icon={folderIcon} key={win.id} onClick={focusFunc}/>
+      }
+
+      return null
+    })
+  }
+
   render() {
+    const { openWindow } = this.props
+
     return (
       <Shell>
         <Desktop>
           <IconArea desktop iconTextColor="white">
-            <IconRegular label="An icon" icon={folderIcon} onDoubleClick={action('icon double clicked')}/>
-            <IconRegular label="Another icon" onDoubleClick={action('icon double clicked')}/>
-            <IconRegular label="A third icon" onDoubleClick={action('icon double clicked')}/>
+            <IconRegular label="An icon" icon={folderIcon} onDoubleClick={() => openWindow('folder')}/>
+            <IconRegular label="Another icon" onDoubleClick={() => openWindow('wordpad')}/>
+            <IconRegular label="A third icon" onDoubleClick={() => openWindow('wordpad')}/>
           </IconArea>
           <WindowLayer>
-            <Folder icon={folderIcon} title="A window" hasFocus>
-              {sequentialArray(30).map(i => <IconRegular label="And YOU get an icon!" key={i}/>)}
-            </Folder>
-            <WordPad icon={defaultIcon} hasFocus>
-              <h1>Content!</h1>
-              <p>Here's some content. Here's some content. Here's some content. Here's some content. Here's some content. Here's some content.</p>
-              <img src="http://loremflickr.com/400/300/cats/" alt="Obligatory cat photo"/>
-            </WordPad>
+            {this.renderWindows()}
           </WindowLayer>
         </Desktop>
         <Taskbar startMenuItems={startMenuItems}>
-          <TaskbarItem label="A taskbar item" icon={folderIcon}/>
-          <TaskbarItem label="Another taskbar item" icon={folderIcon}/>
-          <TaskbarItem label="Long title on another taskbar item" icon={folderIcon}/>
+          {this.renderTaskbarItems()}
         </Taskbar>
       </Shell>
     )
   }
 }
 
-export default App
+const mapStateToProps = state => ({
+  windowState: state.window,
+})
+
+const mapDispatchToProps = {
+  openWindow,
+  focusWindow,
+  closeWindow,
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(App)
