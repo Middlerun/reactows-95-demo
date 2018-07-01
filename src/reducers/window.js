@@ -6,8 +6,6 @@ import {
   CLOSE_WINDOOW,
 } from '../actions/window'
 
-const MAX_INT = 2147483647
-
 const initialState = {
   list: [],
 }
@@ -48,6 +46,7 @@ export default function (state = initialState, action) {
       }
 
       newWinList = focusWindowById(state.list, action.windowId)
+
       return {
         ...state,
         list: updateZIndices(newWinList)
@@ -58,14 +57,18 @@ export default function (state = initialState, action) {
           return {
             ...win,
             minimized: action.isMinimized,
-            zIndex: action.isMinimized ? 0 : MAX_INT
           }
         }
         return win
       })
 
+      if (action.isMinimized) {
+        newWinList = focusHighestWindow(newWinList)
+      } else {
+        newWinList = focusWindowById(newWinList, action.windowId)
+      }
+
       newWinList = updateZIndices(newWinList)
-      newWinList = focusHighestWindow(newWinList)
 
       return {
         ...state,

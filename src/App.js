@@ -130,13 +130,9 @@ class App extends Component {
     } = this.props
 
     return windowState.list.map(win => {
-      const onClick = win.minimized ?
-        () => setWindowMinimized(win.id, false) :
-        (
-          win.focused ?
-            () => setWindowMinimized(win.id, true) :
-            () => focusWindow(win.id)
-        )
+      const onClick = (!win.minimized && !win.focused) ?
+        () => focusWindow(win.id) :
+        () => setWindowMinimized(win.id, !win.minimized)
 
       if (win.appName === 'wordpad') {
         return <TaskbarItem label="A taskbar item" icon={defaultIcon} key={win.id} focused={win.focused} onClick={onClick}/>
