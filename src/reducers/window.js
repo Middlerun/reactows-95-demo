@@ -1,4 +1,12 @@
-import { OPEN_WINDOOW, FOCUS_WINDOW, CLOSE_WINDOOW} from '../actions/window'
+import {
+  OPEN_WINDOOW,
+  FOCUS_WINDOW,
+  SET_WINDOW_MINIMIZED,
+  SET_WINDOW_MAXIMIZED,
+  CLOSE_WINDOOW,
+} from '../actions/window'
+
+const MAX_INT = 2147483647
 
 const initialState = {
   list: [],
@@ -18,14 +26,17 @@ export default function (state = initialState, action) {
     case OPEN_WINDOOW:
       const newWinId = nextId()
       newWinList = [
-        ...state.list.map(win => setFocusedOrNot(win, newWinId)),
+        ...focusWindowById(state.list, newWinId),
         {
           id: newWinId,
           appName: action.appName,
           content: null,
           focused: true,
+          minimized: false,
+          maximized: false,
         }
       ]
+
       return {
         ...state,
         list: updateZIndices(newWinList)
@@ -36,10 +47,44 @@ export default function (state = initialState, action) {
         return state
       }
 
-      newWinList = state.list.map(win => setFocusedOrNot(win, action.windowId))
+      newWinList = focusWindowById(state.list, action.windowId)
       return {
         ...state,
         list: updateZIndices(newWinList)
+      }
+    case SET_WINDOW_MINIMIZED:
+      newWinList = state.list.map(win => {
+        if (win.id === action.windowId) {
+          return {
+            ...win,
+            minimized: action.isMinimized,
+            zIndex: action.isMinimized ? 0 : MAX_INT
+          }
+        }
+        return win
+      })
+
+      newWinList = updateZIndices(newWinList)
+      newWinList = focusHighestWindow(newWinList)
+
+      return {
+        ...state,
+        list: newWinList,
+      }
+    case SET_WINDOW_MAXIMIZED:
+      newWinList = state.list.map(win => {
+        if (win.id === action.windowId) {
+          return {
+            ...win,
+            maximized: action.isMaximized,
+          }
+        }
+        return win
+      })
+
+      return {
+        ...state,
+        list: newWinList,
       }
     case CLOSE_WINDOOW:
       const closedWindow = state.list.find(win => win.id === action.windowId)
@@ -48,10 +93,7 @@ export default function (state = initialState, action) {
       }
 
       newWinList = state.list.filter(win => win.id !== action.windowId)
-      const highestWindow = findHighestWindow(newWinList)
-      if (highestWindow) {
-        newWinList = newWinList.map(win => setFocusedOrNot(win, highestWindow.id))
-      }
+      newWinList = focusHighestWindow(newWinList)
 
       return {
         ...state,
@@ -62,11 +104,16 @@ export default function (state = initialState, action) {
   }
 }
 
+function focusHighestWindow(winList) {
+  const highestWindow = findHighestWindow(winList)
+  return focusWindowById(winList, highestWindow ? highestWindow.id : null)
+}
+
 function findHighestWindow(winList) {
   let topZIndex = -1
   let highestWindow = null
   winList.forEach(win => {
-    if (win.zIndex > topZIndex) {
+    if (!win.minimized && win.zIndex > topZIndex) {
       highestWindow = win
       topZIndex = win.zIndex
     }
@@ -80,7 +127,11 @@ function updateZIndices(winList) {
 
   winList
     .slice(0)
-    .sort((a, b) => a.zIndex - b.zIndex)
+    .sort((a, b) => {
+      if (a.minimized && !b.minimized) return -1
+      if (b.minimized && !a.minimized) return 1
+      return a.zIndex - b.zIndex
+    })
     .forEach(win => {
       if (win.focused) {
         focusedWinId = win.id
@@ -102,6 +153,10 @@ function updateZIndices(winList) {
       zIndex,
     }
   })
+}
+
+function focusWindowById(winList, windowId) {
+  return winList.map(win => setFocusedOrNot(win, windowId))
 }
 
 function setFocusedOrNot(win, focusedWindowId) {

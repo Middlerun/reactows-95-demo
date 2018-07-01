@@ -1,7 +1,13 @@
 import React, { Component } from 'react'
 import {connect} from 'react-redux'
 
-import { openWindow, focusWindow, closeWindow } from './actions/window'
+import {
+  openWindow,
+  focusWindow,
+  setWindowMinimized,
+  setWindowMaximized,
+  closeWindow,
+} from './actions/window'
 import {
   Desktop,
   Folder,
@@ -61,18 +67,30 @@ const startMenuItems = [
 
 class App extends Component {
   renderWindows() {
-    const { windowState, focusWindow, closeWindow } = this.props
+    const {
+      windowState,
+      focusWindow,
+      setWindowMinimized,
+      setWindowMaximized,
+      closeWindow,
+    } = this.props
 
     return windowState.list.map(win => {
       const closeFunc = () => closeWindow(win.id)
       const focusFunc = () => focusWindow(win.id)
+      const setWindowMinimizedFunc = (isMinimized) => setWindowMinimized(win.id, isMinimized)
+      const setWindowMaximizedFunc = (isMaximized) => setWindowMaximized(win.id, isMaximized)
 
       if (win.appName === 'wordpad') {
         return <WordPad
           icon={defaultIcon}
           hasFocus={win.focused}
+          minimized={win.minimized}
+          maximized={win.maximized}
           key={win.id}
           onMouseDown={focusFunc}
+          setMinimized={setWindowMinimizedFunc}
+          setMaximized={setWindowMaximizedFunc}
           onRequestClose={closeFunc}
           zIndex={win.zIndex}
         >
@@ -87,8 +105,12 @@ class App extends Component {
           icon={folderIcon}
           title="A window"
           hasFocus={win.focused}
+          minimized={win.minimized}
+          maximized={win.maximized}
           key={win.id}
           onMouseDown={focusFunc}
+          setMinimized={setWindowMinimizedFunc}
+          setMaximized={setWindowMaximizedFunc}
           onRequestClose={closeFunc}
           zIndex={win.zIndex}
         >
@@ -101,17 +123,27 @@ class App extends Component {
   }
 
   renderTaskbarItems() {
-    const { windowState, focusWindow } = this.props
+    const {
+      windowState,
+      focusWindow,
+      setWindowMinimized,
+    } = this.props
 
     return windowState.list.map(win => {
-      const focusFunc = () => focusWindow(win.id)
+      const onClick = win.minimized ?
+        () => setWindowMinimized(win.id, false) :
+        (
+          win.focused ?
+            () => setWindowMinimized(win.id, true) :
+            () => focusWindow(win.id)
+        )
 
       if (win.appName === 'wordpad') {
-        return <TaskbarItem label="A taskbar item" icon={defaultIcon} key={win.id} onClick={focusFunc}/>
+        return <TaskbarItem label="A taskbar item" icon={defaultIcon} key={win.id} focused={win.focused} onClick={onClick}/>
       }
 
       if (win.appName === 'folder') {
-        return <TaskbarItem label="A taskbar item" icon={folderIcon} key={win.id} onClick={focusFunc}/>
+        return <TaskbarItem label="A taskbar item" icon={folderIcon} key={win.id} focused={win.focused} onClick={onClick}/>
       }
 
       return null
@@ -148,6 +180,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   openWindow,
   focusWindow,
+  setWindowMinimized,
+  setWindowMaximized,
   closeWindow,
 }
 

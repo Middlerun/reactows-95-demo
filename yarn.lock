@@ -5687,7 +5687,7 @@ react@^16.4.0:
 
 "reactows-95@git+https://github.com/Middlerun/reactows-95.git#built":
   version "0.1.0"
-  resolved "git+https://github.com/Middlerun/reactows-95.git#1bee4c81357639e55710761d935a04a33a4d5277"
+  resolved "git+https://github.com/Middlerun/reactows-95.git#5c64e94af045e0b4838bd0b02d2a002c46703e05"
   dependencies:
     prop-types "^15.6.2"
     react-overlays "^0.8.3"
