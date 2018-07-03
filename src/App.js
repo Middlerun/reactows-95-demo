@@ -80,6 +80,7 @@ class App extends Component {
       const focusFunc = () => focusWindow(win.id)
       const setWindowMinimizedFunc = (isMinimized) => setWindowMinimized(win.id, isMinimized)
       const setWindowMaximizedFunc = (isMaximized) => setWindowMaximized(win.id, isMaximized)
+      const id = `taskbar-item-${win.id}`
 
       if (win.appName === 'wordpad') {
         return <WordPad
@@ -93,6 +94,7 @@ class App extends Component {
           setMaximized={setWindowMaximizedFunc}
           onRequestClose={closeFunc}
           zIndex={win.zIndex}
+          taskbarItemId={id}
         >
           <h1>Content!</h1>
           <p>Here's some content. Here's some content. Here's some content. Here's some content. Here's some content. Here's some content.</p>
@@ -113,6 +115,7 @@ class App extends Component {
           setMaximized={setWindowMaximizedFunc}
           onRequestClose={closeFunc}
           zIndex={win.zIndex}
+          taskbarItemId={id}
         >
           {sequentialArray(30).map(i => <IconRegular label="And YOU get an icon!" key={i}/>)}
         </Folder>
@@ -133,13 +136,28 @@ class App extends Component {
       const onClick = (!win.minimized && !win.focused) ?
         () => focusWindow(win.id) :
         () => setWindowMinimized(win.id, !win.minimized)
+      const id = `taskbar-item-${win.id}`
 
       if (win.appName === 'wordpad') {
-        return <TaskbarItem label="A taskbar item" icon={defaultIcon} key={win.id} focused={win.focused} onClick={onClick}/>
+        return <TaskbarItem
+          label="A taskbar item"
+          icon={defaultIcon}
+          key={win.id}
+          focused={win.focused}
+          onClick={onClick}
+          id={id}
+        />
       }
 
       if (win.appName === 'folder') {
-        return <TaskbarItem label="A taskbar item" icon={folderIcon} key={win.id} focused={win.focused} onClick={onClick}/>
+        return <TaskbarItem
+          label="A taskbar item"
+          icon={folderIcon}
+          key={win.id}
+          focused={win.focused}
+          onClick={onClick}
+          id={id}
+        />
       }
 
       return null
