@@ -4,13 +4,14 @@ import {connect} from 'react-redux'
 import {
   openWindow,
   focusWindow,
+  setWindowTitle,
   setWindowMinimized,
   setWindowMaximized,
   closeWindow,
 } from './actions/window'
 import {
   Desktop,
-  Folder,
+  FileBrowser,
   IconArea,
   IconRegular,
   Shell,
@@ -65,11 +66,51 @@ const startMenuItems = [
   { label: 'Shut down...', onSelect: startMenuItemSelected },
 ]
 
+const desktopFileTree = [
+  { name: 'Folder 1', type: 'folder', fileTree: [
+      { name: 'Folder 3', type: 'folder', fileTree: [
+          { name: 'File 5', type: 'rtf', content: 'Hello world!'},
+          { name: 'File 6', type: 'rtf', content: 'Hello world!'},
+        ]},
+      { name: 'File 3', type: 'rtf', content: 'Hello world!'},
+      { name: 'File 4', type: 'rtf', content: 'Hello world!'},
+    ]},
+  { name: 'Folder 2', type: 'folder',
+    fileTree: sequentialArray(30).map(i => ({ name: `File ${i+1}`, type: 'rtf', content: `This is file ${i+1}`}))},
+  { name: 'File 1', type: 'rtf', content: 'Hello world!'},
+  { name: 'File 2', type: 'rtf', contentUrl: 'https://swapi.co/api/people/1'},
+]
+
 class App extends Component {
+  apps = {
+    filebrowser: {
+      component: FileBrowser,
+      icon: folderIcon,
+      renderContent: win => this.fileTreeToIcons(win.data.fileTree),
+    },
+    wordpad: {
+      component: WordPad,
+      icon: defaultIcon,
+      renderContent: win => win.data.content,
+    },
+  }
+
+  fileTypes = {
+    folder: {
+      icon: folderIcon,
+      appName: 'filebrowser',
+    },
+    rtf: {
+      icon: defaultIcon,
+      appName: 'wordpad',
+    },
+  }
+
   renderWindows() {
     const {
       windowState,
       focusWindow,
+      setWindowTitle,
       setWindowMinimized,
       setWindowMaximized,
       closeWindow,
@@ -78,50 +119,35 @@ class App extends Component {
     return windowState.list.map(win => {
       const closeFunc = () => closeWindow(win.id)
       const focusFunc = () => focusWindow(win.id)
+      const setWindowTitleFunc = (title) => setWindowTitle(win.id, title)
       const setWindowMinimizedFunc = (isMinimized) => setWindowMinimized(win.id, isMinimized)
       const setWindowMaximizedFunc = (isMaximized) => setWindowMaximized(win.id, isMaximized)
       const id = `taskbar-item-${win.id}`
 
-      if (win.appName === 'wordpad') {
-        return <WordPad
-          icon={defaultIcon}
-          hasFocus={win.focused}
-          minimized={win.minimized}
-          maximized={win.maximized}
-          key={win.id}
-          onMouseDown={focusFunc}
-          setMinimized={setWindowMinimizedFunc}
-          setMaximized={setWindowMaximizedFunc}
-          onRequestClose={closeFunc}
-          zIndex={win.zIndex}
-          taskbarItemId={id}
-        >
-          <h1>Content!</h1>
-          <p>Here's some content. Here's some content. Here's some content. Here's some content. Here's some content. Here's some content.</p>
-          <img src="http://loremflickr.com/400/300/cats/" alt="Obligatory cat photo"/>
-        </WordPad>
-      }
+      const app = this.apps[win.appName]
 
-      if (win.appName === 'folder') {
-        return <Folder
-          icon={folderIcon}
-          title="A window"
-          hasFocus={win.focused}
-          minimized={win.minimized}
-          maximized={win.maximized}
-          key={win.id}
-          onMouseDown={focusFunc}
-          setMinimized={setWindowMinimizedFunc}
-          setMaximized={setWindowMaximizedFunc}
-          onRequestClose={closeFunc}
-          zIndex={win.zIndex}
-          taskbarItemId={id}
-        >
-          {sequentialArray(30).map(i => <IconRegular label="And YOU get an icon!" key={i}/>)}
-        </Folder>
-      }
+      if (!app) return null
 
-      return null
+      const Component = app.component
+
+      return <Component
+        icon={app.icon}
+        title={win.title || 'New window'}
+        fileName={win.fileName}
+        hasFocus={win.focused}
+        minimized={win.minimized}
+        maximized={win.maximized}
+        key={win.id}
+        onMouseDown={focusFunc}
+        onSetTitle={setWindowTitleFunc}
+        setMinimized={setWindowMinimizedFunc}
+        setMaximized={setWindowMaximizedFunc}
+        onRequestClose={closeFunc}
+        zIndex={win.zIndex}
+        taskbarItemId={id}
+      >
+        {app.renderContent(win)}
+      </Component>
     })
   }
 
@@ -138,42 +164,45 @@ class App extends Component {
         () => setWindowMinimized(win.id, !win.minimized)
       const id = `taskbar-item-${win.id}`
 
-      if (win.appName === 'wordpad') {
-        return <TaskbarItem
-          label="A taskbar item"
-          icon={defaultIcon}
-          key={win.id}
-          focused={win.focused}
-          onClick={onClick}
-          id={id}
-        />
-      }
+      const app = this.apps[win.appName]
 
-      if (win.appName === 'folder') {
-        return <TaskbarItem
-          label="A taskbar item"
-          icon={folderIcon}
-          key={win.id}
-          focused={win.focused}
-          onClick={onClick}
-          id={id}
-        />
-      }
+      if (!app) return null
 
-      return null
+      return <TaskbarItem
+        label={win.title || 'New window'}
+        icon={app.icon}
+        key={win.id}
+        focused={win.focused}
+        onClick={onClick}
+        id={id}
+      />
     })
   }
 
-  render() {
+  fileTreeToIcons(fileTree) {
     const { openWindow } = this.props
 
+    return fileTree.map((file, i) => {
+      const fileType = this.fileTypes[file.type]
+
+      if (!fileType) return null
+
+      return <IconRegular
+        key={i}
+        label={file.name}
+        icon={fileType.icon}
+        onDoubleClick={() => openWindow(fileType.appName, file.name, file)}
+      />
+    })
+  }
+
+
+  render() {
     return (
       <Shell>
         <Desktop>
           <IconArea desktop iconTextColor="white">
-            <IconRegular label="An icon" icon={folderIcon} onDoubleClick={() => openWindow('folder')}/>
-            <IconRegular label="Another icon" onDoubleClick={() => openWindow('wordpad')}/>
-            <IconRegular label="A third icon" onDoubleClick={() => openWindow('wordpad')}/>
+            {this.fileTreeToIcons(desktopFileTree)}
           </IconArea>
           <WindowLayer>
             {this.renderWindows()}
@@ -194,6 +223,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   openWindow,
   focusWindow,
+  setWindowTitle,
   setWindowMinimized,
   setWindowMaximized,
   closeWindow,

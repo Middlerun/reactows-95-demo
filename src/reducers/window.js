@@ -1,6 +1,7 @@
 import {
   OPEN_WINDOOW,
   FOCUS_WINDOW,
+  SET_WINDOW_TITLE,
   SET_WINDOW_MINIMIZED,
   SET_WINDOW_MAXIMIZED,
   CLOSE_WINDOOW,
@@ -27,7 +28,10 @@ export default function (state = initialState, action) {
         ...focusWindowById(state.list, newWinId),
         {
           id: newWinId,
+          title: null,
           appName: action.appName,
+          fileName: action.fileName,
+          data: action.data,
           content: null,
           focused: true,
           minimized: false,
@@ -37,7 +41,7 @@ export default function (state = initialState, action) {
 
       return {
         ...state,
-        list: updateZIndices(newWinList)
+        list: updateZIndices(newWinList),
       }
     case FOCUS_WINDOW:
       if (state.list.find(win => win.id === action.windowId).focused) {
@@ -49,7 +53,22 @@ export default function (state = initialState, action) {
 
       return {
         ...state,
-        list: updateZIndices(newWinList)
+        list: updateZIndices(newWinList),
+      }
+    case SET_WINDOW_TITLE:
+      newWinList = state.list.map(win => {
+        if (win.id === action.windowId) {
+          return {
+            ...win,
+            title: action.title,
+          }
+        }
+        return win
+      })
+
+      return {
+        ...state,
+        list: newWinList,
       }
     case SET_WINDOW_MINIMIZED:
       newWinList = state.list.map(win => {
@@ -66,9 +85,8 @@ export default function (state = initialState, action) {
         newWinList = focusHighestWindow(newWinList)
       } else {
         newWinList = focusWindowById(newWinList, action.windowId)
+        newWinList = raiseWindowToTopById(newWinList, action.windowId)
       }
-
-      newWinList = updateZIndices(newWinList)
 
       return {
         ...state,
@@ -100,7 +118,7 @@ export default function (state = initialState, action) {
 
       return {
         ...state,
-        list: newWinList
+        list: newWinList,
       }
     default:
       return state
@@ -131,8 +149,6 @@ function updateZIndices(winList) {
   winList
     .slice(0)
     .sort((a, b) => {
-      if (a.minimized && !b.minimized) return -1
-      if (b.minimized && !a.minimized) return 1
       return a.zIndex - b.zIndex
     })
     .forEach(win => {
@@ -160,6 +176,19 @@ function updateZIndices(winList) {
 
 function focusWindowById(winList, windowId) {
   return winList.map(win => setFocusedOrNot(win, windowId))
+}
+
+function raiseWindowToTopById(winList, windowId) {
+  const highestWindow = findHighestWindow(winList)
+  const nextZIndex = highestWindow ? highestWindow.zIndex + 1 : 1
+  const newWinList = winList.map(win => {
+    return (win.id !== windowId) ? win :
+      {
+        ...win,
+        zIndex: nextZIndex,
+      }
+  })
+  return updateZIndices(newWinList)
 }
 
 function setFocusedOrNot(win, focusedWindowId) {
