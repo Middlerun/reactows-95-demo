@@ -11,6 +11,7 @@ import {
 } from './actions/window'
 import {
   Desktop,
+  Dialog,
   FileBrowser,
   IconArea,
   IconRegular,
@@ -78,10 +79,18 @@ const desktopFileTree = [
   { name: 'Folder 2', type: 'folder',
     fileTree: sequentialArray(30).map(i => ({ name: `File ${i+1}`, type: 'rtf', content: `This is file ${i+1}`}))},
   { name: 'File 1', type: 'rtf', content: 'Hello world!'},
-  { name: 'File 2', type: 'rtf', contentUrl: 'https://swapi.co/api/people/1'},
+  { name: 'File 2', type: 'rtf', contentUrl: 'https://swapi.co/api/people/1/'},
+  { name: 'Corrupted file', type: 'rtf', contentUrl: 'https://swapi.co/api/peoples/1/'},
 ]
 
 class App extends Component {
+  constructor() {
+    super()
+    this.state = {
+      filesLoading: 0,
+    }
+  }
+
   apps = {
     filebrowser: {
       component: FileBrowser,
@@ -92,6 +101,10 @@ class App extends Component {
       component: WordPad,
       icon: defaultIcon,
       renderContent: win => win.data.content,
+    },
+    dialog: {
+      component: Dialog,
+      renderContent: win => win.data,
     },
   }
 
@@ -179,9 +192,38 @@ class App extends Component {
     })
   }
 
-  fileTreeToIcons(fileTree) {
+  openFile(file, fileType) {
     const { openWindow } = this.props
 
+    if (file.contentUrl) {
+      this.setState(state => ({ filesLoading: state.filesLoading + 1 }))
+      this.fetchFile(file.contentUrl)
+        .then(content => {
+          const fileWithContent = {...file, content: content}
+          openWindow(fileType.appName, fileWithContent.name, fileWithContent)
+        })
+        .catch(error => {
+          openWindow('dialog', 'Error', error.message)
+        })
+        .then(() => {
+          this.setState(state => ({ filesLoading: state.filesLoading - 1 }))
+        })
+    } else {
+      openWindow(fileType.appName, file.name, file)
+    }
+  }
+
+  fetchFile(url) {
+    return fetch(url)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to open file')
+        }
+        return response.text()
+      })
+  }
+
+  fileTreeToIcons(fileTree) {
     return fileTree.map((file, i) => {
       const fileType = this.fileTypes[file.type]
 
@@ -191,7 +233,7 @@ class App extends Component {
         key={i}
         label={file.name}
         icon={fileType.icon}
-        onDoubleClick={() => openWindow(fileType.appName, file.name, file)}
+        onDoubleClick={() => this.openFile(file, fileType)}
       />
     })
   }
@@ -199,7 +241,7 @@ class App extends Component {
 
   render() {
     return (
-      <Shell>
+      <Shell semiBusy={this.state.filesLoading > 0}>
         <Desktop>
           <IconArea desktop iconTextColor="white">
             {this.fileTreeToIcons(desktopFileTree)}
