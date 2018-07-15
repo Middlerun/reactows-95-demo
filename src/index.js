@@ -6,6 +6,8 @@ import configureStore from './store/configureStore'
 import './index.css'
 import App from './App'
 
+require('array.prototype.find').shim();
+
 const store = configureStore()
 
 ReactDOM.render(
