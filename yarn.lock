@@ -5702,9 +5702,9 @@ react@^16.4.0:
     object-assign "^4.1.1"
     prop-types "^15.6.0"
 
-reactows-95@0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/reactows-95/-/reactows-95-0.0.1.tgz#eb240635a8b114914f68045c5f93cbda3754ae0a"
+reactows-95@0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/reactows-95/-/reactows-95-0.0.3.tgz#797087fdf45cc7beebdac20cfa88cdb7ae6eed55"
   dependencies:
     prop-types "^15.6.2"
     react-overlays "^0.8.3"

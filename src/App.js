@@ -15,6 +15,7 @@ import {
   FileBrowser,
   IconArea,
   IconRegular,
+  Notepad,
   Shell,
   Taskbar,
   TaskbarItem,
@@ -78,8 +79,9 @@ const desktopFileTree = [
     ]},
   { name: 'Folder 2', type: 'folder',
     fileTree: sequentialArray(30).map(i => ({ name: `File ${i+1}`, type: 'rtf', content: `This is file ${i+1}`}))},
-  { name: 'File 1', type: 'rtf', content: 'Hello world!'},
-  { name: 'File 2', type: 'rtf', contentUrl: 'https://swapi.co/api/people/1/'},
+  { name: 'File 1.rtf', type: 'rtf', content: 'Hello world!'},
+  { name: 'File 2.txt', type: 'txt', content: 'Hello world!'},
+  { name: 'File 3.txt', type: 'txt', contentUrl: 'https://swapi.co/api/people/1/'},
   { name: 'Corrupted file', type: 'rtf', contentUrl: 'https://swapi.co/api/peoples/1/'},
 ]
 
@@ -102,6 +104,11 @@ class App extends Component {
       icon: defaultIcon,
       renderContent: win => win.data.content,
     },
+    notepad: {
+      component: Notepad,
+      icon: defaultIcon,
+      renderContent: win => win.data.content,
+    },
     dialog: {
       component: Dialog,
       renderContent: win => win.data,
@@ -116,6 +123,10 @@ class App extends Component {
     rtf: {
       icon: defaultIcon,
       appName: 'wordpad',
+    },
+    txt: {
+      icon: defaultIcon,
+      appName: 'notepad',
     },
   }
 
@@ -197,7 +208,7 @@ class App extends Component {
 
     if (file.contentUrl) {
       this.setState(state => ({ filesLoading: state.filesLoading + 1 }))
-      this.fetchFile(file.contentUrl)
+      this.fetchFile(file.contentUrl, file.name)
         .then(content => {
           const fileWithContent = {...file, content: content}
           openWindow(fileType.appName, fileWithContent.name, fileWithContent)
@@ -213,11 +224,11 @@ class App extends Component {
     }
   }
 
-  fetchFile(url) {
+  fetchFile(url, fileName) {
     return fetch(url)
       .then(response => {
         if (!response.ok) {
-          throw new Error('Failed to open file')
+          throw new Error(`Failed to open file "${fileName}"`)
         }
         return response.text()
       })
